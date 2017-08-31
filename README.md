@@ -29,7 +29,7 @@ The reverse of this process is used to decode the contents of the image, simply 
 
 When converting back from .png to our original file, we are able to recover the ASCII filename and the length of the payload but the payload itself seems corrupted. Even though the bits we encode are identical to the bits we recover, the output file encoding seems inaccurate. For example, this is the decoded file for the example process above (Alice in Wonderland)...
 
-![Alt text]()
+![Alt text](https://github.com/bfaure/Data2Video/blob/master/resources/problems.PNG)
 
 ## Future Improvements
 
