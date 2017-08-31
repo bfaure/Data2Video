@@ -33,6 +33,12 @@ def png_2_pixels(fname):
 	#pixels_2_png(pixel_list,"test2.png")
 	return pixel_list
 
+# writes out the bits as binary to a file
+def bits_2_file(bits,fname):
+	f = open(fname,"wb")
+	f.write(''.join(bits))
+	print "bits_2_file: Wrote %d bits to %s" % (len(bits),fname)
+
 # returns a list of bits in the file
 def file_2_bits(fname):
 	# allows iteration over the bits (0 or 1) in a file
@@ -92,10 +98,26 @@ def add_header(bits,fname):
 	for char in total_header:
 		header_list.append(char)
 
+	# secondary header after filename to tell how many bits the payload is
+	# length of secondary header is 64 bits to allow for massive payload sizes
+	payload_length_header = "{0:b}".format(len(bits))
+
+	print "bits in payload: %d" % len(bits)
+
+	while len(payload_length_header)<64:
+		payload_length_header = "0"+payload_length_header
+
+	#print payload_length_header
+
+	# append the secondary header to the main header
+	for char in payload_length_header:
+		header_list.append(char)
+
 	# append the original bits onto the header and return
 	header_list.extend(bits)
 	print "add_header: Added %d length header, total bits: %d" % (len(total_header),len(header_list))
 	#print header_list[:16]
+	print ''.join(header_list[:100])
 	return header_list
 
 def decode_binary_string(s):
@@ -105,6 +127,7 @@ def decode_binary_string(s):
 # returns the filename, as well as the rest of the bits 
 # after the header section
 def decode_header(bits):
+	print ''.join(bits[:100])
 	header_length_binstr = ''.join(bits[:16])
 	#print header_length_binstr
 	header_length = int(header_length_binstr,2)
@@ -112,13 +135,22 @@ def decode_header(bits):
 
 	rest_of_header = ''.join(bits[16:16+header_length])
 	rest_of_header = "0"+rest_of_header
-	print rest_of_header
+	#print rest_of_header
+	print "fname binary %s" % rest_of_header
 	fname = decode_binary_string(rest_of_header)
+	print "fname: %s"%fname
 	#n = int(rest_of_header,2)
 	#fname = binascii.unhexlify('%x' % n)
 
+	# now need to decode the size of the payload
+	payload_length_binstr = ''.join(bits[16+header_length:16+header_length+64])
+	#print payload_length_binstr
+	payload_length = int(payload_length_binstr,2)
+
+	print "decoded payload length: %d" % payload_length
+
 	print "decode_header: Found %d length header, " % (header_length)
-	return fname,bits[16+header_length:]
+	return fname,bits[16+header_length+64:16+header_length+64+payload_length]
 
 def main():
 
@@ -149,7 +181,7 @@ def main():
 	#print "Decoding bit header..."
 	fname,bits = decode_header(bits)
 
-	print "Recovered filename: %s" % fname 
+	bits_2_file(bits,src_f.split(".")[0]+"-copy.txt")
 
 	#bitstr = ''.join(bits)
 
