@@ -1,9 +1,5 @@
-
 from PIL import Image
-
 import binascii
-
-import struct
 
 four_k = (3840,2160)
 HD = (1920,1080)
@@ -34,7 +30,9 @@ def png_2_pixels(fname):
 	return pixel_list
 
 # writes out the bits as binary to a file
-def bits_2_file(bits,fname):
+# eventually might need to differentiate between binary and
+# text files, hence the extra default parameter
+def bits_2_file(bits,fname,text=True):
 
 	# helper function to convert a bitstring to bytes
 	def bitstring_to_bytes(s):
@@ -201,8 +199,8 @@ def test_bit_similarity(bits1,bits2):
 
 def main():
 
-	src_f 		= "data/test.jpg"
-	src_f_cln 	= "test.jpg"
+	src_f 		= "data/test.txt"
+	src_f_cln 	= "test.txt"
 	img_f 		= "data/image.png"
 
 
