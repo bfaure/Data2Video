@@ -1,7 +1,11 @@
-# Data2Video
+## Data2Video
 Algorithms to convert arbitrary binary data into video and vice versa.
 
-## Status
+# Overall Idea
+
+Youtube allows for 128 GB uploads, and nearly infinite uploads total, free of cost. If users could encode their data as videos, they would have an easy way of backing up whatever content they wish. A 60fps 4K video has the ability to store a lot of data, if the encoding process we use is sufficient.
+
+# Status
 
 Currently we have the following pipeline; we take an arbitrary input file...
 
@@ -35,7 +39,5 @@ When converting back from .png to our original file, we are able to recover the 
 
 Allow for individual files to span across multiple .png images, to allow for files larger than 1MB to be represented. Once this is complete, the .png images will be strung together using the .gif wrapper to create videos of arbitrary length. Hesitate to use .mp4 wrapper because the compression may cause bits to be lost in translation. To combat the compression issues of .jpg and .mp4, increase the demarkation size for a single bit. For example, now we are encoding a single bit as a 1x1 pixel, which may be lost to compression. Instead, encoded each bit as an nxn square, making it less likely compression will remove the entity. 
 
-# Overall Idea
 
-Youtube allows for 128 GB uploads, and nearly infinite uploads total. If users could encode their data as videos, they would have an easy way of backing up whatever content they wish. A 60fps 4K video has the ability to store a lot of data, if the encoding process we use is sufficient.
 
