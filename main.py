@@ -120,37 +120,44 @@ def add_header(bits,fname):
 	print ''.join(header_list[:100])
 	return header_list
 
-def decode_binary_string(s):
-    return ''.join(chr(int(s[i*8:i*8+8],2)) for i in range(len(s)//8))
 
 # takes in the bits, decodes the header into a filename.
 # returns the filename, as well as the rest of the bits 
 # after the header section
 def decode_header(bits):
-	print ''.join(bits[:100])
-	header_length_binstr = ''.join(bits[:16])
-	#print header_length_binstr
-	header_length = int(header_length_binstr,2)
-	print "header_length: %d" % header_length
 
-	rest_of_header = ''.join(bits[16:16+header_length])
-	rest_of_header = "0"+rest_of_header
+	# helper function, converts a binary string (eg. '10101') to ASCII characters
+	def decode_binary_string(s):
+	    return ''.join(chr(int(s[i*8:i*8+8],2)) for i in range(len(s)//8))
+
+	print ''.join(bits[:100])
+
+	# first 16 bits store the length of the filename (in bits)
+	fname_length_binstr = ''.join(bits[:16])
+
+	# converting filename length to integer
+	fname_length = int(fname_length_binstr,2)
+	print "fname_length: %d" % fname_length
+
+	# next fname_length bits are the ASCII filename
+	fname_binstr = ''.join(bits[16:16+fname_length])
+	fname_binstr = "0"+fname_binstr
 	#print rest_of_header
-	print "fname binary %s" % rest_of_header
-	fname = decode_binary_string(rest_of_header)
+	print "fname binary %s" % fname_binstr
+	fname = decode_binary_string(fname_binstr)
 	print "fname: %s"%fname
 	#n = int(rest_of_header,2)
 	#fname = binascii.unhexlify('%x' % n)
 
 	# now need to decode the size of the payload
-	payload_length_binstr = ''.join(bits[16+header_length:16+header_length+64])
+	payload_length_binstr = ''.join(bits[16+fname_length:16+fname_length+64])
 	#print payload_length_binstr
 	payload_length = int(payload_length_binstr,2)
 
 	print "decoded payload length: %d" % payload_length
 
-	print "decode_header: Found %d length header, " % (header_length)
-	return fname,bits[16+header_length+64:16+header_length+64+payload_length]
+	print "decode_header: Found %d length header, " % (fname_length)
+	return fname,bits[16+fname_length+64:16+fname_length+64+payload_length]
 
 def main():
 
