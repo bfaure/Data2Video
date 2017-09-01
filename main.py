@@ -1,6 +1,8 @@
 from PIL import Image
 import binascii
 
+from bitstring import BitArray
+
 four_k = (3840,2160)
 HD = (1920,1080)
 
@@ -30,41 +32,38 @@ def png_2_pixels(fname):
 	return pixel_list
 
 # writes out the bits as binary to a file
-# eventually might need to differentiate between binary and
-# text files, hence the extra default parameter
-def bits_2_file(bits,fname,text=True):
-
-	# helper function to convert a bitstring to bytes
-	def bitstring_to_bytes(s):
-	    v = int(s, 2)
-	    b = bytearray()
-	    while v:
-	        b.append(v & 0xff)
-	        v >>= 8
-	    return bytes(b[::-1])
-
-	f = open(fname,"wb")
-
-	bitstr = ''.join(bits)
-	bitstr_bytes = bitstring_to_bytes(bitstr)
-
-	f.write(bitstr_bytes)	
-
+def bits_2_file(bits,fname):
+	f = open(fname,'wb')
+	idx=0
+	inc=8
+	while True:
+		char = ''.join(bits[idx:idx+inc])
+		f.write(chr(int(char,2)))
+		idx+=inc
+		if idx>=len(bits): break
+	f.close()
 	print "bits_2_file: Wrote %d bits to %s" % (len(bits),fname)
-
 
 # returns a list of bits in the file
 def file_2_bits(fname):
-	# allows iteration over the bits (0 or 1) in a file
-	def bit_reader(fname):
-	    bytes = (ord(b) for b in fname.read())
-	    for b in bytes:
-	        for i in xrange(8):
-	            yield (b >> i) & 1
 	bits = []
-	for b in bit_reader(open(fname,'rb')):
-		bits.append(str(b))
-	print "file_2_bits: Read %d bits from %s" % (len(bits),fname)
+	f = open(fname, "rb")
+	try:
+	    byte = f.read(1)
+	    while byte != "":
+	        cur_bits = bin(ord(byte))[2:]
+	        while len(cur_bits)<8:
+	        	cur_bits = "0"+cur_bits
+	        for b in cur_bits:
+	        	bits.append(b)
+	       	byte = f.read(1)
+	finally:
+	    f.close()
+	'''
+	first_char = ''.join(bits[:8])
+	n = int(first_char,2)
+	print binascii.unhexlify('%x' % n)
+	'''
 	return bits
 
 # converts a list of 0/1 bits to pixels
@@ -199,8 +198,8 @@ def test_bit_similarity(bits1,bits2):
 
 def main():
 
-	src_f 		= "data/test.txt"
-	src_f_cln 	= "test.txt"
+	src_f 		= "data/test.jpg"
+	src_f_cln 	= "test.jpg"
 	img_f 		= "data/image.png"
 
 
