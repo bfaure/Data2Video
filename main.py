@@ -317,14 +317,7 @@ def decode(src):
 	        while 1:
 	            im.seek(i)
 	            imframe = im.copy()
-	            '''
-	            if i == 0: 
-	                palette = imframe.getpalette()
-	            else:
-	                imframe.putpalette(palette)
-	            '''
 	            imframe = imframe.convert('RGB')
-
 	            yield imframe
 	            i += 1
 	    except EOFError:
@@ -381,28 +374,10 @@ def conversion_test():
 	test_bit_similarity(orig_bits,bits)
 
 def main():
-	encode("data/test.jpg")
-	decode("test.jpg.gif")
+	encode("data/test.mp3")
+	decode("test.mp3.gif")
 
 	#conversion_test()
-
-	'''
-	pixels = png_2_pixels("temp/frame-0.png")
-	print (pixels[:30])
-
-	pixels2 = png_2_pixels("temp/test.jpg-0.png")
-	print (pixels2[:30])
-	'''
-
-	'''
-	bits1 = pixels_2_bits(png_2_pixels("temp/frame-0.png"))
-	bits2 = pixels_2_bits(png_2_pixels("temp/test.jpg-0.png"))
-
-	test_bit_similarity(bits1,bits2)
-
-	bits = pixels_2_bits(pixels)
-	fname, bits = decode_header(bits)
-	'''
 
 if __name__ == '__main__':
 	main()
