@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from PIL import Image
 import binascii
 
@@ -53,7 +55,7 @@ def pixels_2_png(pixels,fname,reso=four_k):
 	img.putdata(pixels)
 	img.save(fname)
 	#print pixels[:16]
-	print "pixels_2_png: Saved to %d pixels to %s" % (len(pixels),fname)
+	print("pixels_2_png: Saved to %d pixels to %s" % (len(pixels),fname))
 
 # provided a filename, reads the png and returns a list of pixels
 def png_2_pixels(fname):
@@ -64,7 +66,7 @@ def png_2_pixels(fname):
 	for row in range(height):
 		for col in range(width):
 			pixel_list.append(pixels[col,row])
-	print "png_2_pixels: Read %d pixels from %s" % (len(pixel_list),fname)
+	print("png_2_pixels: Read %d pixels from %s" % (len(pixel_list),fname))
 	#pixels_2_png(pixel_list,"test2.png")
 	return pixel_list
 
@@ -79,7 +81,7 @@ def bits_2_file(bits,fname):
 		idx+=inc
 		if idx>=len(bits): break
 	f.close()
-	print "bits_2_file: Wrote %d bits to %s" % (len(bits),fname)
+	print("bits_2_file: Wrote %d bits to %s" % (len(bits),fname))
 
 # returns a list of bits in the file
 def file_2_bits(fname):
@@ -99,19 +101,37 @@ def file_2_bits(fname):
 	'''
 	first_char = ''.join(bits[:8])
 	n = int(first_char,2)
-	print binascii.unhexlify('%x' % n)
+	print(binascii.unhexlify('%x' % n))
 	'''
 	return bits
 
 # converts a list of 0/1 bits to pixels
 def bits_2_pixels(bits):
 	pixels=[]
-	for b in bits:
+
+	progress_bar_length = 25
+	progress_bar_item = "-"
+	progress_bar_empty_item = " "
+
+	for i,b in enumerate(bits):
+
+		num_items = int( float(i)/float(len(bits))*float(progress_bar_length) )
+		progress_string = ""
+		for prog_index in range(progress_bar_length):
+			if prog_index<=num_items:
+				progress_string += progress_bar_item
+			else:
+				progress_string += progress_bar_empty_item
+		progress_string += "]"
+		print("bits2pixels... ["+progress_string,end="\r")
+		sys.stdout.flush()
+
 		if b=='0':
 			pixels.append((0,0,0))
 		else:
 			pixels.append((255,255,255))
-	print "bits_2_pixels: Converted %d bits to %d pixels" % (len(bits),len(pixels))
+	sys.stdout.write("\n")
+	print("bits_2_pixels: Converted %d bits to %d pixels" % (len(bits),len(pixels)))
 	return pixels 
 
 # converts opposite of bits_2_pixels
@@ -123,7 +143,7 @@ def pixels_2_bits(pixels):
 			bits.append('0')
 		else:
 			bits.append('1')
-	print "pixels_2_bits: Converted %d pixels to %d bits" % (len(pixels),len(bits))
+	print("pixels_2_bits: Converted %d pixels to %d bits" % (len(pixels),len(bits)))
 	return bits
 
 # adds the file name header to the list of bits
@@ -131,7 +151,7 @@ def add_header(bits,fname):
 	# filename encoded as ascii --> binary
 	fname_bitstr = bin(int(binascii.hexlify(fname), 16))
 	
-	print "add_header: fname_bitstr length %d" % len(fname_bitstr)
+	print("add_header: fname_bitstr length %d" % len(fname_bitstr))
 
 	# extra 2 bytes (16 bits) before header tells how long header is (in bits)
 	fname_bitstr_length_bitstr = "{0:b}".format(len(fname_bitstr)-2)
@@ -152,7 +172,7 @@ def add_header(bits,fname):
 	# length of secondary header is 64 bits to allow for massive payload sizes
 	payload_length_header = "{0:b}".format(len(bits))
 
-	print "bits in payload: %d" % len(bits)
+	print("bits in payload: %d" % len(bits))
 
 	while len(payload_length_header)<64:
 		payload_length_header = "0"+payload_length_header
@@ -186,7 +206,7 @@ def decode_header(bits):
 
 	# converting filename length to integer
 	fname_length = int(fname_length_binstr,2)
-	print "decode_header: fname_length: %d" % fname_length
+	print("decode_header: fname_length: %d" % fname_length)
 
 	# next fname_length bits are the ASCII filename
 	fname_binstr = ''.join(bits[16:16+fname_length])
@@ -196,7 +216,7 @@ def decode_header(bits):
 	
 	# convert the fname bitstring to ASCII
 	fname = decode_binary_string(fname_binstr)
-	print "decode_header: fname: %s"%fname
+	print("decode_header: fname: %s"%fname)
 
 	#n = int(rest_of_header,2)
 	#fname = binascii.unhexlify('%x' % n)
@@ -206,7 +226,7 @@ def decode_header(bits):
 
 	# convert the payload length to integer
 	payload_length = int(payload_length_binstr,2)
-	print "decode_header: payload_length: %d" % payload_length
+	print("decode_header: payload_length: %d" % payload_length)
 
 	#print "decoder_header: total_header: %s" % ''.join(bits[:16+fname_length+64])
 
@@ -227,13 +247,13 @@ def test_bit_similarity(bits1,bits2):
 	f.close()
 
 	if len(bits1)!=len(bits2):
-		print "Bit lengths are not the same!"
+		print ("Bit lengths are not the same!")
 		return
 	for b1,b2 in zip(bits1,bits2):
 		if b1!=b2:
-			print "Bits are not the same!"
+			print ("Bits are not the same!")
 			return
-	print "Bits are identical"
+	print ("Bits are identical")
 
 # provided a relative path, deletes the folder then creates new version
 # under the same name
@@ -241,7 +261,7 @@ def clear_folder(relative_path):
 	try:
 		rmtree(relative_path)
 	except:
-		print "WARNING: Could not locate /temp directory."
+		 print ("WARNING: Could not locate /temp directory.")
 
 	for i in range(10):
 		try:
@@ -254,8 +274,7 @@ def clear_folder(relative_path):
 # - all .png's created in the process are held in the /temp directory
 def encode(src,res=four_k):
 	bits 	= file_2_bits(src)
-	#bits 	= add_header(bits,src.split("/")[-1])
-	bits 	= add_header(bits,"test.jpg")
+	bits 	= add_header(bits,src.split("/")[-1])
 	pixels 	= bits_2_pixels(bits)
 
 	# get the total number of pixels in a single image
@@ -311,7 +330,7 @@ def decode(src):
 		saved_frames.append(cur_frame)
 		frame.save(cur_frame)
 
-	print "Identified %d .png frames" % len(saved_frames)
+	print("Identified %d .png frames" % len(saved_frames))
 
 	# convert each png to pixels
 	pixels = []
@@ -351,10 +370,10 @@ def conversion_test():
 	test_bit_similarity(orig_bits,bits)
 
 def main():
-	#encode("data/test.jpg")
+	#encode("data/test.txt")
 	#decode("test.jpg.gif")
 
-	#conversion_test()
+	conversion_test()
 
 
 if __name__ == '__main__':
