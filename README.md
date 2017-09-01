@@ -5,13 +5,27 @@ Algorithms to convert arbitrary binary data into video and vice versa.
 
 Youtube allows for 128 GB uploads, and nearly infinite uploads total, free of cost. If users could encode their data as videos, they would have an easy way of backing up whatever content they wish. A 60fps 4K video has the ability to store a lot of data, if the encoding process we use is sufficient.
 
-# Status
+Our process thus far only supports .gif output, which is not acceptable as a data format on Youtube. To route around this issue, Imgur can be used as the data sink, which also tmk has no cap on upload size / count.
 
-Currently we have the following pipeline; we take an arbitrary input file...
+# Example
+
+We wish to encode the .mp3 audio file found under the /data directory into a .gif video. The song, viewable [here](https://drive.google.com/open?id=0BxJe_Ggl7BIgUmdCWk1ZY05SSWc), is "Paris" by LASERS.
+
+We call the encode() function, passing the path to the .mp3 as the only parameter. This will convert the .mp3 into a list of pixels, either being (0,0,0) or (255,255,255), representing "0" and "1" in binary, respectively. The function will then produce a series of 4K .png images (stored in the /temp directory), which are strung together to create the final .gif video. For our input .mp3, the following is the .gif output.
+
+![Alt text](https://github.com/bfaure/Data2Video/blob/master/test.mp3.gif)
+
+Consisting of 9 4K .png's, at 10 frames per second. To increase the data bitrate, we can either increase the .png resolution or increase the framerate. Note that there is a minor header section we append to the bits before converting them into pixels, see the Encoding Process section for more info. 
+
+To convert the .gif back into it's original file (in this case 'test.mp3'), it's as simple as calling decode(), passing the path to the gif as the parameter. This will split the .gif back into it's constituent .png images and reverse the encoding process to recover the original file, saving it with the same name as the original, but with -recovered appended to the end.
+
+# Encoding / Decoding Process
+
+Currently we have the following pipeline; we take an arbitrary input file (data/test.txt)...
 
 ![Alt text](https://github.com/bfaure/Data2Video/blob/master/resources/source_file.PNG)
 
-which is read as raw binary. To the beginning of this binary we append the following three header sections...
+and read it in as raw binary. To the beginning of this binary we append the following three header sections...
 
 ![Alt text](https://github.com/bfaure/Data2Video/blob/master/resources/headers.PNG)
 
@@ -29,15 +43,9 @@ As of now, we are using a default 4K image size (3840 x 2160). This allows for a
 
 The reverse of this process is used to decode the contents of the image, simply put; we recover the bits of the .png image by converting all pixels to bits, then recover the length of the filename by reading the first 16 bits, then recover the original filename, then recover the length of the payload (original file) by reading the 64 bits of the "Payload Length" section.
 
-## Issues
-
-When converting back from .png to our original file, we are able to recover the ASCII filename and the length of the payload but the payload itself seems corrupted. Even though the bits we encode are identical to the bits we recover, the output file encoding seems inaccurate. For example, this is the decoded file for the example process above (Alice in Wonderland)...
-
-![Alt text](https://github.com/bfaure/Data2Video/blob/master/resources/problems.PNG)
-
 ## Future Improvements
 
-Allow for individual files to span across multiple .png images, to allow for files larger than 1MB to be represented. Once this is complete, the .png images will be strung together using the .gif wrapper to create videos of arbitrary length. Hesitate to use .mp4 wrapper because the compression may cause bits to be lost in translation. To combat the compression issues of .jpg and .mp4, increase the demarkation size for a single bit. For example, now we are encoding a single bit as a 1x1 pixel, which may be lost to compression. Instead, encoded each bit as an nxn square, making it less likely compression will remove the entity. 
+Find a suitable video wrapper format to convert the .gif videos into. Hesitate to use .mp4 because the compression may cause bits to be lost in translation. To combat the compression issues of .jpg and .mp4, increase the demarkation size for a single bit. For example, now we are encoding a single bit as a 1x1 pixel, which may be lost to compression. Instead, encoded each bit as an nxn square, making it less likely compression will remove the entity. 
 
 
 
