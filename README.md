@@ -1,8 +1,8 @@
 # Overall Idea
 
-Youtube allows for 128 GB uploads, and nearly infinite uploads total, free of cost. If users could encode their data as videos, they would have an easy way of backing up whatever content they wish. A 60fps 4K video has the ability to store a lot of data, if the encoding process we use is sufficient.
+Youtube allows for 128 GB uploads, and uncapped uploads total, free of cost. If users could encode their data as videos, they would have an easy way of backing up whatever content they wish. A 60fps 4K video has the ability to store a lot of data, if the encoding process we use is sufficient.
 
-Our process thus far only supports .gif output, which is not acceptable as a data format on Youtube. To route around this issue, Imgur can be used as the data sink, which also tmk has no cap on upload size / count.
+Our process thus far only supports .gif output, which is not acceptable as a data format on Youtube. To route around this issue, Imgur can be used as the data sink, which also has no cap on upload size / count.
 
 # Example
 
