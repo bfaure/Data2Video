@@ -3,11 +3,44 @@ import binascii
 
 from bitstring import BitArray
 
+# for creating gifs
+import imageio
+
+import os,sys
+
 four_k = (3840,2160)
 HD = (1920,1080)
 
 # encoding...
 # 0 is black pixel, white is 1
+
+# writes a gif in parent_folder made up of all it's sorted .png files
+def make_gif(parent_folder,fname):
+	items = os.listdir(parent_folder)
+	png_filenames = []
+	for elem in items:
+		if elem.find(".png")!=-1:
+			png_filenames.append(elem)
+
+	sorted_png = []
+	while True:
+		lowest = 10000000
+		lowest_idx = -1
+		for p in png_filenames:
+			val = int(p.split("-")[1].split(".")[0])
+			if lowest_idx==-1 or val<lowest:
+				lowest = val
+				lowest_idx = png_filenames.index(p)
+		sorted_png.append(png_filenames[lowest_idx])
+		del png_filenames[lowest_idx]
+		if len(png_filenames)==0: break
+	png_filenames = sorted_png
+
+	with imageio.get_writer(fname+".gif", mode='I',duration=0.1) as writer:
+		for filename in png_filenames:
+			image = imageio.imread(parent_folder+"/"+filename)
+			writer.append_data(image)
+	return fname+".gif"
 
 # provided a list of pixels, writes it out as an image
 # with the specified resolution
@@ -196,8 +229,41 @@ def test_bit_similarity(bits1,bits2):
 			return
 	print "Bits are identical"
 
-def main():
+# - provided a source file, encodes it into a .gif video
+# - all .png's created in the process are held in the /temp directory
+def encode(src,res=four_k):
+	bits 	= file_2_bits(src)
+	bits 	= add_header(bits,src.split("/")[-1])
+	pixels 	= bits_2_pixels(bits)
 
+	# get the total number of pixels in a single image
+	pixels_per_image = res[0]*res[1]
+
+	# get the number of images required to hold entire file
+	num_imgs = int(len(pixels)/pixels_per_image)+1
+
+	# filename without any path specifiers
+	name_clean = src.split("/")[-1]
+
+	# create each of the png's
+	for i in range(num_imgs):
+		cur_temp_name = "temp/"+name_clean+"-"+str(i)+".png"
+		cur_start_idx = i*pixels_per_image
+		cur_span = min(pixels_per_image, len(pixels)-cur_start_idx)
+		cur_pixels = pixels[cur_start_idx:cur_start_idx+cur_span]
+		pixels_2_png(cur_pixels,cur_temp_name)
+		if cur_span<pixels_per_image: break
+
+	# create gif from png sequence
+	gif_name = make_gif("temp",name_clean)
+	return gif_name
+
+
+def main():
+	encode("data/test.jpg")
+
+
+	'''
 	src_f 		= "data/test.jpg"
 	src_f_cln 	= "test.jpg"
 	img_f 		= "data/image.png"
@@ -231,7 +297,7 @@ def main():
 	bits_2_file(bits,src_f.split(".")[0]+"-copy."+src_f_cln.split(".")[1])
 
 	#bitstr = ''.join(bits)
-
+	'''
 
 if __name__ == '__main__':
 	main()
