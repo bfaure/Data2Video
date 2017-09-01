@@ -1,6 +1,3 @@
-## Data2Video
-Algorithms to convert arbitrary binary data into video and vice versa.
-
 # Overall Idea
 
 Youtube allows for 128 GB uploads, and nearly infinite uploads total, free of cost. If users could encode their data as videos, they would have an easy way of backing up whatever content they wish. A 60fps 4K video has the ability to store a lot of data, if the encoding process we use is sufficient.
@@ -47,5 +44,11 @@ The reverse of this process is used to decode the contents of the image, simply 
 
 Find a suitable video wrapper format to convert the .gif videos into. Hesitate to use .mp4 because the compression may cause bits to be lost in translation. To combat the compression issues of .jpg and .mp4, increase the demarkation size for a single bit. For example, now we are encoding a single bit as a 1x1 pixel, which may be lost to compression. Instead, encoded each bit as an nxn square, making it less likely compression will remove the entity. 
 
+## Dependencies
+* Python 2.7
+* PIL Library
+* bitstring Library
+* imageio Library
+* shutil Library
 
 
