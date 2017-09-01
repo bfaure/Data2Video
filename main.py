@@ -113,6 +113,7 @@ def bits_2_pixels(bits):
 	progress_bar_item = "-"
 	progress_bar_empty_item = " "
 
+	'''
 	for i,b in enumerate(bits):
 
 		num_items = int( float(i)/float(len(bits))*float(progress_bar_length) )
@@ -131,6 +132,9 @@ def bits_2_pixels(bits):
 		else:
 			pixels.append((255,255,255))
 	sys.stdout.write("\n")
+	'''
+	for b in bits:
+		pixels.append((0,0,0) if b=='0' else (255,255,255))
 	print("bits_2_pixels: Converted %d bits to %d pixels" % (len(bits),len(pixels)))
 	return pixels 
 
@@ -283,6 +287,8 @@ def encode(src,res=four_k):
 	# get the number of images required to hold entire file
 	num_imgs = int(len(pixels)/pixels_per_image)+1
 
+	print ("encode: Encoding will require %d .png frames" % num_imgs)
+
 	# filename without any path specifiers
 	name_clean = src.split("/")[-1]
 
@@ -311,10 +317,14 @@ def decode(src):
 	        while 1:
 	            im.seek(i)
 	            imframe = im.copy()
+	            '''
 	            if i == 0: 
 	                palette = imframe.getpalette()
 	            else:
 	                imframe.putpalette(palette)
+	            '''
+	            imframe = imframe.convert('RGB')
+
 	            yield imframe
 	            i += 1
 	    except EOFError:
@@ -327,10 +337,10 @@ def decode(src):
 	saved_frames = []
 	for i,frame in enumerate(iter_frames(im)):
 		cur_frame = "temp/frame-%d.png" % i 
-		saved_frames.append(cur_frame)
-		frame.save(cur_frame)
+		saved_frames.append(cur_frame)		
+		frame.save(cur_frame,**frame.info)
 
-	print("Identified %d .png frames" % len(saved_frames))
+	print("decode: Identified %d .png frames" % len(saved_frames))
 
 	# convert each png to pixels
 	pixels = []
@@ -347,7 +357,8 @@ def decode(src):
 	# write out the file
 	bits_2_file(bits,fname.split(".")[0]+"-recovered."+fname.split(".")[1])
 
-
+# test to ensure that conversion works and the original file is recoverable.
+# only uses a single .png image (input file must be < 1MB)
 def conversion_test():
 	src_f 		= "data/test.jpg"
 	src_f_cln 	= "test.jpg"
@@ -370,11 +381,28 @@ def conversion_test():
 	test_bit_similarity(orig_bits,bits)
 
 def main():
-	#encode("data/test.txt")
-	#decode("test.jpg.gif")
+	encode("data/test.jpg")
+	decode("test.jpg.gif")
 
-	conversion_test()
+	#conversion_test()
 
+	'''
+	pixels = png_2_pixels("temp/frame-0.png")
+	print (pixels[:30])
+
+	pixels2 = png_2_pixels("temp/test.jpg-0.png")
+	print (pixels2[:30])
+	'''
+
+	'''
+	bits1 = pixels_2_bits(png_2_pixels("temp/frame-0.png"))
+	bits2 = pixels_2_bits(png_2_pixels("temp/test.jpg-0.png"))
+
+	test_bit_similarity(bits1,bits2)
+
+	bits = pixels_2_bits(pixels)
+	fname, bits = decode_header(bits)
+	'''
 
 if __name__ == '__main__':
 	main()
