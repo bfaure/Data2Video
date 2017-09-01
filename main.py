@@ -6,7 +6,11 @@ from bitstring import BitArray
 # for creating gifs
 import imageio
 
+# for file stuff
 import os,sys
+
+# for deleting folders
+from shutil import rmtree
 
 four_k = (3840,2160)
 HD = (1920,1080)
@@ -209,6 +213,8 @@ def decode_header(bits):
 	#print "decode_header: Found %d length header, " % (fname_length)
 	return fname,bits[16+fname_length+64:16+fname_length+64+payload_length]
 
+# provided two lists of bits, ensures both are identical,
+# if not, reports the difference
 def test_bit_similarity(bits1,bits2):
 
 	f = open("bits.txt","w")
@@ -229,11 +235,27 @@ def test_bit_similarity(bits1,bits2):
 			return
 	print "Bits are identical"
 
+# provided a relative path, deletes the folder then creates new version
+# under the same name
+def clear_folder(relative_path):
+	try:
+		rmtree(relative_path)
+	except:
+		print "WARNING: Could not locate /temp directory."
+
+	for i in range(10):
+		try:
+			os.mkdir(relative_path)
+			break
+		except:
+			continue
+
 # - provided a source file, encodes it into a .gif video
 # - all .png's created in the process are held in the /temp directory
 def encode(src,res=four_k):
 	bits 	= file_2_bits(src)
-	bits 	= add_header(bits,src.split("/")[-1])
+	#bits 	= add_header(bits,src.split("/")[-1])
+	bits 	= add_header(bits,"test.jpg")
 	pixels 	= bits_2_pixels(bits)
 
 	# get the total number of pixels in a single image
@@ -244,6 +266,9 @@ def encode(src,res=four_k):
 
 	# filename without any path specifiers
 	name_clean = src.split("/")[-1]
+
+	# clear the /temp folder
+	clear_folder("temp")
 
 	# create each of the png's
 	for i in range(num_imgs):
@@ -258,46 +283,79 @@ def encode(src,res=four_k):
 	gif_name = make_gif("temp",name_clean)
 	return gif_name
 
+# - provided a source .gif, decodes it back into the original file
+def decode(src):
+	# helper function to allow for iteration over .png's inside .gif
+	def iter_frames(im):
+	    try:
+	        i= 0
+	        while 1:
+	            im.seek(i)
+	            imframe = im.copy()
+	            if i == 0: 
+	                palette = imframe.getpalette()
+	            else:
+	                imframe.putpalette(palette)
+	            yield imframe
+	            i += 1
+	    except EOFError:
+	        pass
 
-def main():
-	encode("data/test.jpg")
+	# load .gif
+	im = Image.open(src)
+
+	# save each frame individually
+	saved_frames = []
+	for i,frame in enumerate(iter_frames(im)):
+		cur_frame = "temp/frame-%d.png" % i 
+		saved_frames.append(cur_frame)
+		frame.save(cur_frame)
+
+	print "Identified %d .png frames" % len(saved_frames)
+
+	# convert each png to pixels
+	pixels = []
+	for s in saved_frames:
+		cur_pixels = png_2_pixels(s)
+		pixels.extend(cur_pixels)
+
+	# convert all pixels to bits
+	bits = pixels_2_bits(pixels)
+
+	# decode the filename
+	fname,bits = decode_header(bits)
+
+	# write out the file
+	bits_2_file(bits,fname.split(".")[0]+"-recovered."+fname.split(".")[1])
 
 
-	'''
+def conversion_test():
 	src_f 		= "data/test.jpg"
 	src_f_cln 	= "test.jpg"
 	img_f 		= "data/image.png"
 
-
-	#print "Converting file to bits..."
+	# converting file to png...
 	test_f_bits = file_2_bits(src_f)
 	orig_bits = test_f_bits
-
-	#print "Adding header to bits..."
 	test_f_bits = add_header(test_f_bits,src_f_cln)
-
-	#print "Converting bits to pixels..."
 	pixels = bits_2_pixels(test_f_bits)
-
-	#print "Writing out pixels to image..."
 	pixels_2_png(pixels,img_f)
 
-
-	#print "Reading pixels from png..."
+	# converting png back to file...
 	pixels = png_2_pixels(img_f)
-
-	#print "Converting pixels to bits..."
 	bits = pixels_2_bits(pixels)
-
-	#print "Decoding bit header..."
 	fname,bits = decode_header(bits)
-
-	test_bit_similarity(orig_bits,bits)
-
 	bits_2_file(bits,src_f.split(".")[0]+"-copy."+src_f_cln.split(".")[1])
 
-	#bitstr = ''.join(bits)
-	'''
+	# testing to see if recovered bits are identical to original
+	test_bit_similarity(orig_bits,bits)
+
+def main():
+	#encode("data/test.jpg")
+	#decode("test.jpg.gif")
+
+	#conversion_test()
+
 
 if __name__ == '__main__':
 	main()
